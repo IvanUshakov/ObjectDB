@@ -1,0 +1,66 @@
+//
+//  File.swift
+//  
+//
+//  Created by Ivan Ushakov on 09.08.2022.
+//
+
+import Foundation
+
+// TODO: rename to collection
+class Storage<Element> {
+
+    var storageBackend: StorageBackend<Element>
+
+    init(primaryIndex: any Index<Element>, indexes: [any Index<Element>] = []) {
+        self.storageBackend = StorageBackend(primaryIndex: primaryIndex, indexes: indexes)
+    }
+
+    // TODO: throw if element alrady exists
+    func insert(_ element: Element) throws {
+        storageBackend.insert(element)
+    }
+
+    // TODO: implement
+    func insert(_ elements: [Element]) throws {
+
+    }
+
+    // TODO: implement
+    // TODO: we need inser by cursor for this
+    func insertOrUpdate(_ element: Element) throws {
+//        storageBackend.insert(element)
+    }
+
+    // TODO: implement
+    func insertOrUpdate(_ elements: [Element]) throws {
+
+    }
+
+    func first() -> Element? {
+        return WhereStatement(storageBackend: storageBackend).first()
+    }
+
+    func first(_ count: UInt) -> [Element] {
+        return WhereStatement(storageBackend: storageBackend).first(count)
+    }
+
+    func all() -> [Element] {
+        return WhereStatement(storageBackend: storageBackend).all()
+    }
+
+    // TODO: implement
+    func clear() -> UInt {
+        return 0
+    }
+
+    // TODO: refactor
+    func `where`<Value>(_ keyPath: KeyPath<Element, Value>, _ condition: Condition<Value>) -> WhereStatement<Element> {
+        return WhereStatement(storageBackend: storageBackend, keyPath: keyPath, condition: condition)
+    }
+
+    func `where`(_ conditionStatement: some ConditionStatement<Element>) -> WhereStatement<Element> {
+        return WhereStatement(storageBackend: storageBackend, conditionStatement: conditionStatement)
+    }
+
+}
