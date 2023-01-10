@@ -8,31 +8,20 @@
 import Foundation
 
 class BPlusTreeIndex<Key, Element>: Index where Key: Comparable & Hashable {
-    let order: UInt // TODO: rename?
+    let order: UInt
 
     var keyPath: KeyPath<Element, Key>
-    var root: BPlusTreeNode<Key, RefBox<Element>> = BPlusTreeNode()
+    lazy var root: BPlusTreeNode<Key, Element> = BPlusTreeNode<Key, Element>(index: self)
 
-    init(keyPath: KeyPath<Element, Key>, order: UInt = 3) {
+    init(keyPath: KeyPath<Element, Key>, order: UInt = 5) {
         self.keyPath = keyPath
         self.order = order
     }
 
     func insert(_ box: RefBox<Element>) {
         let key = box.value[keyPath: keyPath]
-
-        var node = findLeaf(node: root, key: key)
-        node.add(key: key, value: box)
-
-        while node.keys.count >= order {
-            node.split()
-
-            guard let parent = node.parent else {
-                break
-            }
-
-            node = parent
-        }
+        findLeaf(node: root, key: key)
+            .add(key: key, value: box)
     }
 
     func enumerate(range: IndexRange<Key>) -> (any IndexCursor<Element>)? {
@@ -43,13 +32,17 @@ class BPlusTreeIndex<Key, Element>: Index where Key: Comparable & Hashable {
         return BPlusTreeCursor(range: range, leaf: leaf, index: 0)
     }
 
+    func printTree() {
+        root.printTree()
+    }
+
 }
 
 // MARK: - Find nodes
 private extension BPlusTreeIndex {
 
     // TODO: support left and right bound of range for ordering
-    func findLeaf(range: IndexRange<Key>) -> BPlusTreeNode<Key, RefBox<Element>>? {
+    func findLeaf(range: IndexRange<Key>) -> BPlusTreeNode<Key, Element>? {
         if let lowerBound = range.lowerBound {
             return findLeaf(node: root, key: lowerBound.value) // TODO: handle include in bound
         } else {
@@ -57,8 +50,8 @@ private extension BPlusTreeIndex {
         }
     }
 
-    func findMostLeftLeaf() -> BPlusTreeNode<Key, RefBox<Element>>? {
-        var node: BPlusTreeNode<Key, RefBox<Element>>? = root
+    func findMostLeftLeaf() -> BPlusTreeNode<Key, Element>? {
+        var node: BPlusTreeNode<Key, Element>? = root
         while node?.isLeaf == false {
             node = node?.children.first
         }
@@ -66,7 +59,7 @@ private extension BPlusTreeIndex {
         return node
     }
 
-    func findLeaf(node: BPlusTreeNode<Key, RefBox<Element>>, key: Key) -> BPlusTreeNode<Key, RefBox<Element>> {
+    func findLeaf(node: BPlusTreeNode<Key, Element>, key: Key) -> BPlusTreeNode<Key, Element> {
         var node = node
         while !node.isLeaf {
             node = findChild(node: node, key: key)
@@ -75,14 +68,14 @@ private extension BPlusTreeIndex {
         return node
     }
 
-    func findChild(node: BPlusTreeNode<Key, RefBox<Element>>, key: Key) -> BPlusTreeNode<Key, RefBox<Element>> {
+    func findChild(node: BPlusTreeNode<Key, Element>, key: Key) -> BPlusTreeNode<Key, Element> {
         for i in node.keys.indices {
             if node.keys[i] > key {
                 return node.children[i]
             }
         }
 
-        return node.children[node.keys.endIndex]
+        return node.children[node.children.endIndex - 1]
     }
 
 }

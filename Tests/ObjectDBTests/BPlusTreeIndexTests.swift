@@ -1,0 +1,50 @@
+import XCTest
+@testable import ObjectDB
+
+final class BPlusTreeIndexTests: XCTestCase {
+
+    func testInsert() throws {
+        let tree = BPlusTreeIndex(keyPath: \TestStruct.id)
+        tree.insert(RefBox(value: TestStruct(id: 1, value: "A")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 2, value: "B")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 3, value: "C")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 4, value: "D")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 5, value: "D")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 6, value: "D")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 7, value: "D")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 8, value: "D")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 9, value: "D")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 10, value: "D")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 11, value: "D")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 12, value: "D")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 13, value: "D")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 14, value: "D")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 15, value: "D")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 16, value: "D")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 17, value: "D")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 18, value: "D")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 19, value: "D")))
+        tree.printTree()
+        tree.insert(RefBox(value: TestStruct(id: 20, value: "D")))
+        tree.printTree()
+    }
+
+}

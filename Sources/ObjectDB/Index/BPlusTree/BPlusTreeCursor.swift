@@ -10,7 +10,7 @@ import Foundation
 struct BPlusTreeCursor<Key, Element>: IndexCursor where Key: Comparable & Hashable {
     var range: IndexRange<Key>
 
-    var leaf: BPlusTreeNode<Key, RefBox<Element>>
+    var leaf: BPlusTreeNode<Key, Element>
     var index: Int
 
     mutating func next() -> (any IndexCursor<Element>)? {
@@ -38,8 +38,9 @@ struct BPlusTreeCursor<Key, Element>: IndexCursor where Key: Comparable & Hashab
         return refBox.value
     }
 
+    // TODO: what we need to do with cursor after deleting element
     func delete() {
-        // TODO: implement
+        leaf.delete(index: index)
     }
 
     func update(updates: [any UpdateElementType<Element>]) {
