@@ -19,16 +19,9 @@ final class WhereStatement<Element> {
     let storageBackend: StorageBackend<Element>
     let condition: (any ConditionStatement<Element>)?
 
-    // TODO: remove?
     init(storageBackend: StorageBackend<Element>, conditionStatement: (any ConditionStatement<Element>)?) {
         self.storageBackend = storageBackend
         self.condition = conditionStatement
-    }
-
-    // TODO: remove?
-    init<Value>(storageBackend: StorageBackend<Element>, keyPath: KeyPath<Element, Value>, condition: Condition<Value>) {
-        self.storageBackend = storageBackend
-        self.condition = PropertyConditionStatement(keyPath: keyPath, condition: condition)
     }
 
     init(storageBackend: StorageBackend<Element>) {
@@ -55,9 +48,9 @@ final class WhereStatement<Element> {
         return storageBackend.execute(request: request)
     }
 
-    // TODO: implement
     func count() -> UInt {
-        return 0
+        let request = CountRequest(whereStatement: self)
+        return storageBackend.execute(request: request)
     }
 
     @discardableResult

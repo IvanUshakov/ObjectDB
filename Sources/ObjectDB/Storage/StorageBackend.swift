@@ -37,6 +37,19 @@ class StorageBackend<Element> {
         return values
     }
 
+    func execute(request: CountRequest<Element>) -> UInt {
+        var cursor = execute(whereStatement: request.whereStatement)
+        var count: UInt = 0
+
+        while cursor != nil {
+            count += 1
+            cursor = cursor?.next()
+        }
+
+        return count
+    }
+
+    // TODO: update index keys if need
     func execute(request: UpdateRequest<Element>) -> UInt {
         let updates = Array(request.updates.values)
         var cursor = execute(whereStatement: request.whereStatement)
@@ -81,7 +94,7 @@ private extension StorageBackend {
     }
 
     func execute(index: some Index<Element>, whereStatement: WhereStatement<Element>) -> (any IndexCursor<Element>)? {
-        return MultiBoundsCursor(index: index, whereStatement: whereStatement)
+        return MultiRangeCursor(index: index, whereStatement: whereStatement)
     }
 
 }

@@ -14,10 +14,7 @@ import Foundation
 protocol ConditionStatement<Element>: CustomDebugStringConvertible {
     associatedtype Element
     func validate(element: Element) -> Bool
-
-    // TODO: make private
-    // TODO: rename?
-    func bounds<Value>(for keyPath: KeyPath<Element, Value>) -> [Bounds<Value>]?
+    func indexRanges<Value>(for keyPath: KeyPath<Element, Value>) -> [IndexRange<Value>]?
 }
 
 // MAKR: - 
@@ -33,12 +30,12 @@ struct PropertyConditionStatement<Element, Value>: ConditionStatement where Valu
         return condition.validate(value: element[keyPath: keyPath])
     }
 
-    func bounds<V>(for keyPath: KeyPath<Element, V>) -> [Bounds<V>]? {
+    func indexRanges<V>(for keyPath: KeyPath<Element, V>) -> [IndexRange<V>]? {
         guard let condition = condition as? Condition<V>, keyPath == self.keyPath else {
             return nil
         }
 
-        return condition.bounds
+        return condition.indexRanges
     }
 
 }
@@ -80,16 +77,16 @@ struct OrConditionStatement<Element>: ConditionStatement {
         lhs.validate(element: element) || rhs.validate(element: element)
     }
 
-    func bounds<Value>(for keyPath: KeyPath<Element, Value>) -> [Bounds<Value>]? where Value : Comparable & Hashable {
-        guard let lhsBounds = lhs.bounds(for: keyPath) else {
+    func indexRanges<Value>(for keyPath: KeyPath<Element, Value>) -> [IndexRange<Value>]? where Value : Comparable & Hashable {
+        guard let lhsRange = lhs.indexRanges(for: keyPath) else {
             return nil
         }
 
-        guard let rhsBounds = rhs.bounds(for: keyPath) else {
+        guard let rhsRange = rhs.indexRanges(for: keyPath) else {
             return nil
         }
 
-        return Bounds<Value>.union(lhs: lhsBounds, rhs: rhsBounds)
+        return IndexRange<Value>.union(lhs: lhsRange, rhs: rhsRange)
     }
 }
 
@@ -111,16 +108,16 @@ struct AndConditionStatement<Element>: ConditionStatement {
         lhs.validate(element: element) && rhs.validate(element: element)
     }
 
-    func bounds<Value>(for keyPath: KeyPath<Element, Value>) -> [Bounds<Value>]? where Value: Comparable & Hashable {
-        guard let lhsBounds = lhs.bounds(for: keyPath) else {
-            return rhs.bounds(for: keyPath)
+    func indexRanges<Value>(for keyPath: KeyPath<Element, Value>) -> [IndexRange<Value>]? where Value: Comparable & Hashable {
+        guard let lhsRange = lhs.indexRanges(for: keyPath) else {
+            return rhs.indexRanges(for: keyPath)
         }
 
-        guard let rhsBounds = rhs.bounds(for: keyPath) else {
-            return lhsBounds
+        guard let rhsrange = rhs.indexRanges(for: keyPath) else {
+            return lhsRange
         }
 
-        return Bounds<Value>.intersect(lhs: lhsBounds, rhs: rhsBounds)
+        return IndexRange<Value>.intersect(lhs: lhsRange, rhs: rhsrange)
     }
 }
 
@@ -140,12 +137,12 @@ struct NotConditionStatement<Element>: ConditionStatement {
         return !conditionStatement.validate(element: element)
     }
 
-    func bounds<Value>(for keyPath: KeyPath<Element, Value>) -> [Bounds<Value>]? where Value : Comparable & Hashable {
-        guard let bounds = conditionStatement.bounds(for: keyPath) else {
+    func indexRanges<Value>(for keyPath: KeyPath<Element, Value>) -> [IndexRange<Value>]? where Value : Comparable & Hashable {
+        guard let ranges = conditionStatement.indexRanges(for: keyPath) else {
             return nil
         }
 
-        return Bounds<Value>.inverse(bounds: bounds)
+        return IndexRange<Value>.inverse(ranges: ranges)
     }
 }
 

@@ -8,7 +8,7 @@
 import Foundation
 
 struct BPlusTreeCursor<Key, Element>: IndexCursor where Key: Comparable & Hashable {
-    var bounds: Bounds<Key>
+    var range: IndexRange<Key>
 
     var leaf: BPlusTreeNode<Key, RefBox<Element>>
     var index: Int
@@ -27,7 +27,7 @@ struct BPlusTreeCursor<Key, Element>: IndexCursor where Key: Comparable & Hashab
 
         // TODO: fix !greater
         // TODO: handle keys.count == 0
-        if let upperBound = bounds.upperBound, !upperBound.greater(key) {
+        if let upperBound = range.upperBound, !upperBound.greater(key) {
             return nil
         }
 

@@ -14,5 +14,5 @@ protocol Index<Element> {
     var keyPath: KeyPath<Element, Key> { get set }
 
     func insert(_ box: RefBox<Element>) // TODO: use cursor
-    func enumerate(bounds: Bounds<Key>) -> (any IndexCursor<Element>)?
+    func enumerate(range: IndexRange<Key>) -> (any IndexCursor<Element>)?
 }

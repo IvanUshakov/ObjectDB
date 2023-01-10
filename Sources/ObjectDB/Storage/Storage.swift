@@ -49,14 +49,15 @@ class Storage<Element> {
         return WhereStatement(storageBackend: storageBackend).all()
     }
 
-    // TODO: implement
     func clear() -> UInt {
-        return 0
+        return WhereStatement(storageBackend: storageBackend).delete()
     }
 
-    // TODO: refactor
     func `where`<Value>(_ keyPath: KeyPath<Element, Value>, _ condition: Condition<Value>) -> WhereStatement<Element> {
-        return WhereStatement(storageBackend: storageBackend, keyPath: keyPath, condition: condition)
+        return WhereStatement(
+            storageBackend: storageBackend,
+            conditionStatement: PropertyConditionStatement(keyPath: keyPath, condition: condition)
+        )
     }
 
     func `where`(_ conditionStatement: some ConditionStatement<Element>) -> WhereStatement<Element> {

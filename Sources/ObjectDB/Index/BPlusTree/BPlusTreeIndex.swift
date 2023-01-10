@@ -35,12 +35,12 @@ class BPlusTreeIndex<Key, Element>: Index where Key: Comparable & Hashable {
         }
     }
 
-    func enumerate(bounds: Bounds<Key>) -> (any IndexCursor<Element>)? {
-        guard let leaf = findLeafForBounds(bounds: bounds) else {
+    func enumerate(range: IndexRange<Key>) -> (any IndexCursor<Element>)? {
+        guard let leaf = findLeaf(range: range) else {
             return nil
         }
 
-        return BPlusTreeCursor(bounds: bounds, leaf: leaf, index: 0)
+        return BPlusTreeCursor(range: range, leaf: leaf, index: 0)
     }
 
 }
@@ -48,8 +48,17 @@ class BPlusTreeIndex<Key, Element>: Index where Key: Comparable & Hashable {
 // MARK: - Find nodes
 private extension BPlusTreeIndex {
 
-    func findMostLeftLeaf(node: BPlusTreeNode<Key, RefBox<Element>>) -> BPlusTreeNode<Key, RefBox<Element>>? {
-        var node: BPlusTreeNode<Key, RefBox<Element>>? = node
+    // TODO: support left and right bound of range for ordering
+    func findLeaf(range: IndexRange<Key>) -> BPlusTreeNode<Key, RefBox<Element>>? {
+        if let lowerBound = range.lowerBound {
+            return findLeaf(node: root, key: lowerBound.value) // TODO: handle include in bound
+        } else {
+            return findMostLeftLeaf()
+        }
+    }
+
+    func findMostLeftLeaf() -> BPlusTreeNode<Key, RefBox<Element>>? {
+        var node: BPlusTreeNode<Key, RefBox<Element>>? = root
         while node?.isLeaf == false {
             node = node?.children.first
         }
@@ -74,15 +83,6 @@ private extension BPlusTreeIndex {
         }
 
         return node.children[node.keys.endIndex]
-    }
-
-    // TODO: support left and right bounds for ordering
-    func findLeafForBounds(bounds: Bounds<Key>) -> BPlusTreeNode<Key, RefBox<Element>>? {
-        if let lowerBound = bounds.lowerBound {
-            return findLeaf(node: root, key: lowerBound.value) // TODO: handle include in bound
-        } else {
-            return findMostLeftLeaf(node: root)
-        }
     }
 
 }

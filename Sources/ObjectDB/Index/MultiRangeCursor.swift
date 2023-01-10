@@ -1,5 +1,5 @@
 //
-//  MultiBoundsCursor.swift
+//  MultiRangeCursor.swift
 //  
 //
 //  Created by Ivan Ushakov on 09.01.2023.
@@ -7,23 +7,23 @@
 
 import Foundation
 
-struct MultiBoundsCursor<I>: IndexCursor where I: Index {
+struct MultiRangeCursor<I>: IndexCursor where I: Index {
 
     let index: I
     let whereStatement: WhereStatement<Element>
 
-    var bounds: [Bounds<I.Key>]
-    var boundsIndex: Int
+    var ranges: [IndexRange<I.Key>]
+    var rangeIndex: Int
     var cursor: (any IndexCursor<Element>)
 
     init?(index: I, whereStatement: WhereStatement<Element>) {
         self.index = index
         self.whereStatement = whereStatement
 
-        self.bounds = whereStatement.condition?.bounds(for: index.keyPath) ?? [Bounds(nil, nil)]
-        self.boundsIndex = 0
+        self.ranges = whereStatement.condition?.indexRanges(for: index.keyPath) ?? [IndexRange(nil, nil)]
+        self.rangeIndex = 0
 
-        guard let cursor = index.enumerate(bounds: bounds[boundsIndex]) else {
+        guard let cursor = index.enumerate(range: ranges[rangeIndex]) else {
             return nil
         }
 
@@ -38,12 +38,12 @@ struct MultiBoundsCursor<I>: IndexCursor where I: Index {
             return skipWhileConditionNotSatisfied()
         }
 
-        boundsIndex += 1
-        guard boundsIndex < bounds.endIndex else {
+        rangeIndex += 1
+        guard rangeIndex < ranges.endIndex else {
             return nil
         }
 
-        if let newCursor = index.enumerate(bounds: bounds[boundsIndex]) {
+        if let newCursor = index.enumerate(range: ranges[rangeIndex]) {
             self.cursor = newCursor
             return skipWhileConditionNotSatisfied()
         }
@@ -63,6 +63,7 @@ struct MultiBoundsCursor<I>: IndexCursor where I: Index {
         cursor.delete()
     }
 
+    // TODO: if we skip to end of range, we need move to next range
     @discardableResult
     mutating func skipWhileConditionNotSatisfied() -> Self? {
         guard let condition = whereStatement.condition else {

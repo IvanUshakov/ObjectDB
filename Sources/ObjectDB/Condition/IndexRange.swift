@@ -1,5 +1,5 @@
 //
-//  Bounds.swift
+//  IndexRange.swift
 //  
 //
 //  Created by Ivan Ushakov on 06.01.2023.
@@ -8,7 +8,7 @@
 import Foundation
 
 // We can't use std RangeExpression because we need more flexable behavior
-struct Bounds<Value>: Equatable where Value: Comparable & Hashable {
+struct IndexRange<Value>: Equatable where Value: Comparable & Hashable {
     struct Bound: Equatable {
         let value: Value
         let included: Bool
@@ -47,34 +47,34 @@ struct Bounds<Value>: Equatable where Value: Comparable & Hashable {
     }
 
     // TODO: refactor
-    static func union(lhs: [Bounds<Value>], rhs: [Bounds<Value>]) -> [Bounds<Value>] {
-        let summedBounds = lhs + rhs
+    static func union(lhs: [IndexRange<Value>], rhs: [IndexRange<Value>]) -> [IndexRange<Value>] {
+        let summedRanges = lhs + rhs
 
         guard lhs.count + rhs.count > 1 else {
-            return summedBounds
+            return summedRanges
         }
 
-        let sortedBounds = sort(summedBounds)
+        let sortedRanges = sort(summedRanges)
 
-        var prevBounds = sortedBounds[0]
-        var newBounds = [Bounds<Value>]()
-        for index in 1..<sortedBounds.endIndex {
-            let currentBounds = sortedBounds[index]
+        var prevRange = sortedRanges[0]
+        var newRanges = [IndexRange<Value>]()
+        for index in 1..<sortedRanges.endIndex {
+            let currentRange = sortedRanges[index]
 
-            if prevBounds.overlaps(currentBounds) {
-                prevBounds = prevBounds.union(currentBounds)
+            if prevRange.overlaps(currentRange) {
+                prevRange = prevRange.union(currentRange)
             } else {
-                newBounds.append(prevBounds)
-                prevBounds = currentBounds
+                newRanges.append(prevRange)
+                prevRange = currentRange
             }
         }
 
-        newBounds.append(prevBounds)
+        newRanges.append(prevRange)
 
-        return newBounds
+        return newRanges
     }
 
-    static func intersect(lhs: [Bounds<Value>], rhs: [Bounds<Value>]) -> [Bounds<Value>] {
+    static func intersect(lhs: [IndexRange<Value>], rhs: [IndexRange<Value>]) -> [IndexRange<Value>] {
         guard lhs.count + rhs.count > 1 else {
             return lhs + rhs
         }
@@ -82,52 +82,52 @@ struct Bounds<Value>: Equatable where Value: Comparable & Hashable {
         let sortedLhs = sort(lhs)
         let sortedRhs = sort(rhs)
 
-        var newBounds = [Bounds<Value>]()
+        var newRanges = [IndexRange<Value>]()
         var lhsIndex = sortedLhs.startIndex
         var rhsIndex = sortedLhs.startIndex
 
         while lhsIndex < sortedLhs.endIndex && rhsIndex < sortedRhs.endIndex {
-            let lhsBounds = sortedLhs[lhsIndex]
-            let rhsBounds = sortedRhs[rhsIndex]
+            let lhsRange = sortedLhs[lhsIndex]
+            let rhsRange = sortedRhs[rhsIndex]
 
-            if lhsBounds.overlaps(rhsBounds) {
-                newBounds.append(lhsBounds.intersect(rhsBounds))
+            if lhsRange.overlaps(rhsRange) {
+                newRanges.append(lhsRange.intersect(rhsRange))
             }
 
-            if isLessBound(lhsBounds.upperBound, rhsBounds.upperBound, nillLower: false) {
+            if isLessBound(lhsRange.upperBound, rhsRange.upperBound, nillLower: false) {
                 lhsIndex += 1
             } else {
                 rhsIndex += 1
             }
         }
 
-        return newBounds
+        return newRanges
     }
 
-    static func inverse(bounds: [Bounds<Value>]) -> [Bounds<Value>] {
+    static func inverse(ranges: [IndexRange<Value>]) -> [IndexRange<Value>] {
         func reverseIncluded(_ bound: Bound?) -> Bound? {
             guard let bound else { return nil }
             return Bound(value: bound.value, included: !bound.included)
         }
 
-        let sortedBounds = sort(bounds)
+        let sortedRanges = sort(ranges)
 
-        var inversedBounds = [Bounds<Value>]()
+        var inversedRanges = [IndexRange<Value>]()
         var prevUpperBound: Bound?
 
-        for bounds in sortedBounds {
-            if bounds.lowerBound != nil {
-                inversedBounds.append(Bounds(reverseIncluded(prevUpperBound), reverseIncluded(bounds.lowerBound)))
+        for range in sortedRanges {
+            if range.lowerBound != nil {
+                inversedRanges.append(IndexRange(reverseIncluded(prevUpperBound), reverseIncluded(range.lowerBound)))
             }
 
-            prevUpperBound = bounds.upperBound
+            prevUpperBound = range.upperBound
         }
 
         if prevUpperBound != nil {
-            inversedBounds.append(Bounds(reverseIncluded(prevUpperBound), nil))
+            inversedRanges.append(IndexRange(reverseIncluded(prevUpperBound), nil))
         }
 
-        return inversedBounds
+        return inversedRanges
     }
 
     func contains(_ value: Value) -> Bool {
@@ -146,7 +146,7 @@ struct Bounds<Value>: Equatable where Value: Comparable & Hashable {
         return lowerBound.lower(value) && upperBound.greater(value)
     }
 
-    func overlaps(_ other: Bounds<Value>) -> Bool {
+    func overlaps(_ other: IndexRange<Value>) -> Bool {
         return lowerBound == nil && other.lowerBound == nil ||
         upperBound == nil && other.upperBound == nil ||
         contains(other.lowerBound) ||
@@ -155,21 +155,21 @@ struct Bounds<Value>: Equatable where Value: Comparable & Hashable {
         other.contains(upperBound)
     }
 
-    func union(_ other: Bounds<Value>) -> Bounds<Value> {
-        return Bounds(Self.min(lowerBound, other.lowerBound, nillLower: true), Self.max(upperBound, other.upperBound, nillGreater: true))
+    func union(_ other: IndexRange<Value>) -> IndexRange<Value> {
+        return IndexRange(Self.min(lowerBound, other.lowerBound, nillLower: true), Self.max(upperBound, other.upperBound, nillGreater: true))
     }
 
-    func intersect(_ other: Bounds<Value>) -> Bounds<Value> {
-        return Bounds(Self.max(lowerBound, other.lowerBound, nillGreater: false), Self.min(upperBound, other.upperBound, nillLower: false))
+    func intersect(_ other: IndexRange<Value>) -> IndexRange<Value> {
+        return IndexRange(Self.max(lowerBound, other.lowerBound, nillGreater: false), Self.min(upperBound, other.upperBound, nillLower: false))
     }
 
 }
 
 // TODO: move static func away
-private extension Bounds {
+private extension IndexRange {
 
-    static func sort(_ bounds: [Bounds<Value>]) -> [Bounds<Value>] {
-        bounds.sorted { lhs, rhs in
+    static func sort(_ ranges: [IndexRange<Value>]) -> [IndexRange<Value>] {
+        ranges.sorted { lhs, rhs in
             return isLessBound(lhs.lowerBound, rhs.lowerBound, nillLower: true)
         }
     }

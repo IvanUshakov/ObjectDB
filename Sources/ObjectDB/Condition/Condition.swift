@@ -14,7 +14,7 @@ enum Condition<Value>: CustomDebugStringConvertible where Value: Comparable & Ha
     case greater(_ conditionValue: Value)
     case greaterOrEqual(_ conditionValue: Value)
 
-    case between(_ bounds: Bounds<Value>)
+    case between(_ range: IndexRange<Value>)
 
     case equal(_ conditionValue: Value)
     case notEqual(_ conditionValue: Value)
@@ -25,23 +25,23 @@ enum Condition<Value>: CustomDebugStringConvertible where Value: Comparable & Ha
     // TODO: write why we need this
     static func between(_ range: some RangeExpression<Value>) -> Self {
         if let range = range as? Range<Value> {
-            return .between(Bounds(.included(range.lowerBound), .excluded(range.upperBound)))
+            return .between(IndexRange(.included(range.lowerBound), .excluded(range.upperBound)))
         }
 
         if let range = range as? ClosedRange<Value> {
-            return .between(Bounds(.included(range.lowerBound), .included(range.upperBound)))
+            return .between(IndexRange(.included(range.lowerBound), .included(range.upperBound)))
         }
 
         if let range = range as? PartialRangeUpTo<Value> {
-            return .between(Bounds(nil, .excluded(range.upperBound)))
+            return .between(IndexRange(nil, .excluded(range.upperBound)))
         }
 
         if let range = range as? PartialRangeThrough<Value> {
-            return .between(Bounds(nil, .included(range.upperBound)))
+            return .between(IndexRange(nil, .included(range.upperBound)))
         }
 
         if let range = range as? PartialRangeFrom<Value> {
-            return .between(Bounds(.included(range.lowerBound), nil))
+            return .between(IndexRange(.included(range.lowerBound), nil))
         }
 
         // TODO: We should't crash app if Apple adds a new type that conforms to the RangeExpression protocol
@@ -58,8 +58,8 @@ enum Condition<Value>: CustomDebugStringConvertible where Value: Comparable & Ha
                 return "> \(conditionValue)"
             case let .greaterOrEqual(conditionValue):
                 return ">= \(conditionValue)"
-            case let .between(bounds):
-                return "in (\(bounds))"
+            case let .between(range):
+                return "in (\(range))"
             case let .equal(conditionValue):
                 return "== \(conditionValue)"
             case let .notEqual(conditionValue):
@@ -71,35 +71,34 @@ enum Condition<Value>: CustomDebugStringConvertible where Value: Comparable & Ha
         }
     }
 
-    // TODO: rename to valueRange
-    var bounds: [Bounds<Value>] {
+    var indexRanges: [IndexRange<Value>] {
         switch self {
             case let .less(conditionValue):
-                return [Bounds(nil, .excluded(conditionValue))]
+                return [IndexRange(nil, .excluded(conditionValue))]
             case let .lessOrEqual(conditionValue):
-                return [Bounds(nil, .included(conditionValue))]
+                return [IndexRange(nil, .included(conditionValue))]
             case let .greater(conditionValue):
-                return [Bounds(.excluded(conditionValue), nil)]
+                return [IndexRange(.excluded(conditionValue), nil)]
             case let .greaterOrEqual(conditionValue):
-                return [Bounds(.included(conditionValue), nil)]
-            case let .between(bounds):
-                return [bounds]
+                return [IndexRange(.included(conditionValue), nil)]
+            case let .between(range):
+                return [range]
             case let .equal(conditionValue):
-                return [Bounds(.included(conditionValue), .included(conditionValue))]
+                return [IndexRange(.included(conditionValue), .included(conditionValue))]
             case let .notEqual(conditionValue):
-                return [Bounds(nil, .excluded(conditionValue)), Bounds(.excluded(conditionValue), nil)]
+                return [IndexRange(nil, .excluded(conditionValue)), IndexRange(.excluded(conditionValue), nil)]
             case let .in(conditionValues):
-                return conditionValues.map { Bounds(.included($0), .included($0)) }
+                return conditionValues.map { IndexRange(.included($0), .included($0)) }
             case let .notIn(conditionValues):
-                var (bounds, prevBounds) = conditionValues.reduce(into: (bounds: [Bounds<Value>](), prevBounds: nil as Bounds<Value>?)) {
-                    let newBounds = Bounds($0.prevBounds?.upperBound, .excluded($1))
-                    $0.bounds.append(newBounds)
-                    $0.prevBounds = newBounds
+                var (ranges, prevRange) = conditionValues.reduce(into: (ranges: [IndexRange<Value>](), prevRange: nil as IndexRange<Value>?)) {
+                    let newRange = IndexRange($0.prevRange?.upperBound, .excluded($1))
+                    $0.ranges.append(newRange)
+                    $0.prevRange = newRange
                 }
 
-                bounds.append(Bounds(prevBounds?.upperBound, nil))
+                ranges.append(IndexRange(prevRange?.upperBound, nil))
 
-                return bounds
+                return ranges
         }
     }
 
@@ -115,8 +114,8 @@ enum Condition<Value>: CustomDebugStringConvertible where Value: Comparable & Ha
             case let .greaterOrEqual(conditionValue):
                 return value >= conditionValue
 
-            case let .between(bounds):
-                return bounds.contains(value)
+            case let .between(range):
+                return range.contains(value)
 
             case let .equal(conditionValue):
                 return value == conditionValue
