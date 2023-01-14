@@ -17,16 +17,16 @@ enum SearchCount {
 // TODO: rename to Query?
 final class WhereStatement<Element> {
     let storageBackend: StorageBackend<Element>
-    let condition: (any ConditionStatement<Element>)?
+    let expression: (any Expression<Element>)?
 
-    init(storageBackend: StorageBackend<Element>, conditionStatement: (any ConditionStatement<Element>)?) {
+    init(storageBackend: StorageBackend<Element>, expression: (any Expression<Element>)?) {
         self.storageBackend = storageBackend
-        self.condition = conditionStatement
+        self.expression = expression
     }
 
     init(storageBackend: StorageBackend<Element>) {
         self.storageBackend = storageBackend
-        self.condition = nil
+        self.expression = nil
     }
 
     // TODO: implement

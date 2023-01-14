@@ -56,12 +56,12 @@ class Storage<Element> {
     func `where`<Value>(_ keyPath: KeyPath<Element, Value>, _ condition: Condition<Value>) -> WhereStatement<Element> {
         return WhereStatement(
             storageBackend: storageBackend,
-            conditionStatement: PropertyConditionStatement(keyPath: keyPath, condition: condition)
+            expression: PropertyExpression(keyPath: keyPath, condition: condition)
         )
     }
 
-    func `where`(_ conditionStatement: some ConditionStatement<Element>) -> WhereStatement<Element> {
-        return WhereStatement(storageBackend: storageBackend, conditionStatement: conditionStatement)
+    func `where`(_ expression: some Expression<Element>) -> WhereStatement<Element> {
+        return WhereStatement(storageBackend: storageBackend, expression: expression)
     }
 
 }

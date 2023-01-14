@@ -20,7 +20,7 @@ struct MultiRangeCursor<I>: IndexCursor where I: Index {
         self.index = index
         self.whereStatement = whereStatement
 
-        self.ranges = whereStatement.condition?.indexRanges(for: index.keyPath) ?? [IndexRange(nil, nil)]
+        self.ranges = whereStatement.expression?.indexRanges(for: index.keyPath) ?? [IndexRange(nil, nil)]
         self.rangeIndex = 0
 
         guard let cursor = index.enumerate(range: ranges[rangeIndex]) else {
@@ -66,11 +66,11 @@ struct MultiRangeCursor<I>: IndexCursor where I: Index {
     // TODO: if we skip to end of range, we need move to next range
     @discardableResult
     mutating func skipWhileConditionNotSatisfied() -> Self? {
-        guard let condition = whereStatement.condition else {
+        guard let expression = whereStatement.expression else {
             return self
         }
 
-        while !condition.validate(element: cursor.getValue()) {
+        while !expression.validate(element: cursor.getValue()) {
             guard next() != nil else {
                 return nil
             }
