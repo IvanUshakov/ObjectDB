@@ -43,9 +43,9 @@ struct BPlusTreeCursor<Key, Element>: IndexCursor where Key: Comparable & Hashab
         leaf.delete(index: index)
     }
 
-    func update(updates: [any UpdateElementType<Element>]) {
+    func update(updates: [any KeyPathUpdateType<Element>]) {
         for update in updates {
-            self.update(update)
+            update.apply(to: &refBox.value)
         }
     }
 
@@ -59,10 +59,6 @@ private extension BPlusTreeCursor {
 
     var refBox: RefBox<Element> {
         leaf.values[index]
-    }
-
-    func update(_ update: some UpdateElementType<Element>) {
-        refBox.value[keyPath: update.keyPath] = update.value
     }
 
 }

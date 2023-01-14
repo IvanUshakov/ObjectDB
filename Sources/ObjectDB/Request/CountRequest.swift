@@ -7,10 +7,8 @@
 
 import Foundation
 
-class CountRequest<Element> {
-    var whereStatement: WhereStatement<Element>
-
-    init(whereStatement: WhereStatement<Element>) {
-        self.whereStatement = whereStatement
-    }
+struct CountRequest<Element>: Request {
+    let expression: (any Expression<Element>)?
+    let limit: UInt?
+    let offset: UInt?
 }

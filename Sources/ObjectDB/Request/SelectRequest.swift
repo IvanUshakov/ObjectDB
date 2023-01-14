@@ -7,12 +7,8 @@
 
 import Foundation
 
-class SelectRequest<Element> {
-    var count: SearchCount // TODO: move to where statment?
-    var whereStatement: WhereStatement<Element>
-
-    init(count: SearchCount, whereStatement: WhereStatement<Element>) {
-        self.count = count
-        self.whereStatement = whereStatement
-    }
+struct SelectRequest<Element>: Request {
+    let expression: (any Expression<Element>)?
+    let limit: UInt?
+    let offset: UInt?
 }

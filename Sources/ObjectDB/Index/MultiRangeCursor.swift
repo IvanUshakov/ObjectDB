@@ -7,20 +7,20 @@
 
 import Foundation
 
+// TODO: use limit/offset from request
 struct MultiRangeCursor<I>: IndexCursor where I: Index {
-
     let index: I
-    let whereStatement: WhereStatement<Element>
+    let request: any Request<Element>
 
     var ranges: [IndexRange<I.Key>]
     var rangeIndex: Int
     var cursor: (any IndexCursor<Element>)
 
-    init?(index: I, whereStatement: WhereStatement<Element>) {
+    init?(index: I, request: some Request<Element>) {
         self.index = index
-        self.whereStatement = whereStatement
+        self.request = request
 
-        self.ranges = whereStatement.expression?.indexRanges(for: index.keyPath) ?? [IndexRange(nil, nil)]
+        self.ranges = request.expression?.indexRanges(for: index.keyPath) ?? [IndexRange(nil, nil)]
         self.rangeIndex = 0
 
         guard let cursor = index.enumerate(range: ranges[rangeIndex]) else {
@@ -55,7 +55,7 @@ struct MultiRangeCursor<I>: IndexCursor where I: Index {
         cursor.getValue()
     }
 
-    func update(updates: [any UpdateElementType<I.Element>]) {
+    func update(updates: [any KeyPathUpdateType<I.Element>]) {
         cursor.update(updates: updates)
     }
 
@@ -66,7 +66,7 @@ struct MultiRangeCursor<I>: IndexCursor where I: Index {
     // TODO: if we skip to end of range, we need move to next range
     @discardableResult
     mutating func skipWhileConditionNotSatisfied() -> Self? {
-        guard let expression = whereStatement.expression else {
+        guard let expression = request.expression else {
             return self
         }
 

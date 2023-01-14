@@ -7,9 +7,7 @@
 
 import Foundation
 
-// TODO: rename to collection
 class Storage<Element> {
-
     var storageBackend: StorageBackend<Element>
 
     init(primaryIndex: any Index<Element>, indexes: [any Index<Element>] = []) {
@@ -27,7 +25,7 @@ class Storage<Element> {
     }
 
     // TODO: implement
-    // TODO: we need inser by cursor for this
+    // TODO: we need insert by cursor for this
     func insertOrUpdate(_ element: Element) throws {
 //        storageBackend.insert(element)
     }
@@ -38,30 +36,30 @@ class Storage<Element> {
     }
 
     func first() -> Element? {
-        return WhereStatement(storageBackend: storageBackend).first()
+        return RequestBuilder(storageBackend: storageBackend).first()
     }
 
     func first(_ count: UInt) -> [Element] {
-        return WhereStatement(storageBackend: storageBackend).first(count)
+        return RequestBuilder(storageBackend: storageBackend).first(count)
     }
 
     func all() -> [Element] {
-        return WhereStatement(storageBackend: storageBackend).all()
+        return RequestBuilder(storageBackend: storageBackend).all()
     }
 
     func clear() -> UInt {
-        return WhereStatement(storageBackend: storageBackend).delete()
+        return RequestBuilder(storageBackend: storageBackend).delete()
     }
 
-    func `where`<Value>(_ keyPath: KeyPath<Element, Value>, _ condition: Condition<Value>) -> WhereStatement<Element> {
-        return WhereStatement(
+    func `where`<Value>(_ keyPath: KeyPath<Element, Value>, _ condition: Condition<Value>) -> RequestBuilder<Element> {
+        return RequestBuilder(
             storageBackend: storageBackend,
             expression: PropertyExpression(keyPath: keyPath, condition: condition)
         )
     }
 
-    func `where`(_ expression: some Expression<Element>) -> WhereStatement<Element> {
-        return WhereStatement(storageBackend: storageBackend, expression: expression)
+    func `where`(_ expression: some Expression<Element>) -> RequestBuilder<Element> {
+        return RequestBuilder(storageBackend: storageBackend, expression: expression)
     }
 
 }

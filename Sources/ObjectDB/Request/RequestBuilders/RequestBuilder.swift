@@ -1,5 +1,5 @@
 //
-//  WhereStatement.swift
+//  RequestBuilder.swift
 //  
 //
 //  Created by Ivan Ushakov on 01.01.2023.
@@ -7,15 +7,8 @@
 
 import Foundation
 
-// TODO: rename
-enum SearchCount {
-    case first(_ count: UInt) // TODO: implement in Storage
-    case all
-}
-
 // TODO: add order by, skip and take count (only for ordered request)
-// TODO: rename to Query?
-final class WhereStatement<Element> {
+final class RequestBuilder<Element> {
     let storageBackend: StorageBackend<Element>
     let expression: (any Expression<Element>)?
 
@@ -35,7 +28,8 @@ final class WhereStatement<Element> {
     }
 
     func first(_ count: UInt) -> [Element] {
-        let request = SelectRequest(count: .first(count), whereStatement: self)
+        // TODO: use offset
+        let request = SelectRequest(expression: expression, limit: count, offset: nil)
         return storageBackend.execute(request: request)
     }
 
@@ -44,33 +38,38 @@ final class WhereStatement<Element> {
     }
 
     func all() -> [Element] {
-        let request = SelectRequest(count: .all, whereStatement: self)
+        // TODO: use offset
+        let request = SelectRequest(expression: expression, limit: nil, offset: nil)
         return storageBackend.execute(request: request)
     }
 
     func count() -> UInt {
-        let request = CountRequest(whereStatement: self)
+        // TODO: use limit offset
+        let request = CountRequest(expression: expression, limit: nil, offset: nil)
         return storageBackend.execute(request: request)
     }
 
     @discardableResult
     func update<Value>(_ keyPath: WritableKeyPath<Element, Value>, value: Value) -> UInt {
-        let request = UpdateRequest(whereStatement: self, updates: [UpdateElement(keyPath: keyPath, value: value)])
+        // TODO: use limit offset
+        let request = UpdateRequest(expression: expression, keyPathUpdates: [KeyPathUpdate(keyPath: keyPath, value: value)], limit: nil, offset: nil)
         return storageBackend.execute(request: request)
     }
 
     @discardableResult
-    func update(_ updates: (UpdateStatement<Element>) -> Void) -> UInt {
-        let updateStatement = UpdateStatement<Element>()
-        updates(updateStatement)
+    func update(_ updates: (inout UpdateRequestBuilder<Element>) -> Void) -> UInt {
+        // TODO: use limit offset
+        var updateRequestBuilder = UpdateRequestBuilder<Element>()
+        updates(&updateRequestBuilder)
 
-        let request = UpdateRequest(whereStatement: self, updates: updateStatement.updates)
+        let request = UpdateRequest(expression: expression, keyPathUpdates: updateRequestBuilder.keyPathUpdates, limit: nil, offset: nil)
         return storageBackend.execute(request: request)
     }
 
     @discardableResult
     func delete() -> UInt {
-        let request = DeleteRequest(whereStatement: self)
+        // TODO: use limit offset
+        let request = DeleteRequest(expression: expression, limit: nil, offset: nil)
         return storageBackend.execute(request: request)
     }
 

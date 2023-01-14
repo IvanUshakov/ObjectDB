@@ -7,6 +7,9 @@
 
 import Foundation
 
+// TODO: add alias for Comparable & Hashable
+// TODO: did we realy need constraint Value to Comparable & Hashable in whole lib?
+
 enum Condition<Value>: CustomDebugStringConvertible where Value: Comparable & Hashable {
     case less(_ conditionValue: Value)
     case lessOrEqual(_ conditionValue: Value)

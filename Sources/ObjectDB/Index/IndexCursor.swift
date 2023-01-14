@@ -13,6 +13,6 @@ protocol IndexCursor<Element> {
     mutating func next() -> (any IndexCursor<Element>)?
 
     func getValue() -> Element
-    func update(updates: [any UpdateElementType<Element>])
+    func update(updates: [any KeyPathUpdateType<Element>])
     func delete()
 }

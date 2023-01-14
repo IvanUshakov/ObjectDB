@@ -26,7 +26,7 @@ class StorageBackend<Element> {
     }
 
     func execute(request: SelectRequest<Element>) -> [Element] {
-        var cursor = execute(whereStatement: request.whereStatement)
+        var cursor = executeRequest(request: request)
         var values: [Element] = []
 
         while let currentCursor = cursor {
@@ -38,7 +38,7 @@ class StorageBackend<Element> {
     }
 
     func execute(request: CountRequest<Element>) -> UInt {
-        var cursor = execute(whereStatement: request.whereStatement)
+        var cursor = executeRequest(request: request)
         var count: UInt = 0
 
         while cursor != nil {
@@ -51,12 +51,11 @@ class StorageBackend<Element> {
 
     // TODO: update index keys if need
     func execute(request: UpdateRequest<Element>) -> UInt {
-        let updates = Array(request.updates.values)
-        var cursor = execute(whereStatement: request.whereStatement)
+        var cursor = executeRequest(request: request)
         var count: UInt = 0
 
         while let currentCursor = cursor {
-            currentCursor.update(updates: updates)
+            currentCursor.update(updates: request.keyPathUpdates)
             count += 1
             cursor = cursor?.next()
         }
@@ -67,7 +66,7 @@ class StorageBackend<Element> {
     // TODO: support for multi index
     // TODO: delete element from all indexes
     func execute(request: DeleteRequest<Element>) -> UInt {
-        var cursor = execute(whereStatement: request.whereStatement)
+        var cursor = executeRequest(request: request)
         var count: UInt = 0
 
         while let currentCursor = cursor {
@@ -83,18 +82,18 @@ class StorageBackend<Element> {
 
 private extension StorageBackend {
 
-    func execute(whereStatement: WhereStatement<Element>) -> (any IndexCursor<Element>)? {
-        let index = selectIndex(whereStatement: whereStatement)
-        return execute(index: index, whereStatement: whereStatement)
+    func executeRequest(request: some Request<Element>) -> (any IndexCursor<Element>)? {
+        let index = selectIndex(request: request)
+        return execute(index: index, request: request)
     }
 
     // TODO: implement
-    func selectIndex(whereStatement: WhereStatement<Element>) -> any Index<Element> {
+    func selectIndex(request: some Request<Element>) -> any Index<Element> {
         return primaryIndex
     }
 
-    func execute(index: some Index<Element>, whereStatement: WhereStatement<Element>) -> (any IndexCursor<Element>)? {
-        return MultiRangeCursor(index: index, whereStatement: whereStatement)
+    func execute(index: some Index<Element>, request: some Request<Element>) -> (any IndexCursor<Element>)? {
+        return MultiRangeCursor(index: index, request: request)
     }
 
 }

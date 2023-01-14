@@ -7,7 +7,6 @@
 
 import Foundation
 
-// TODO: add alias for Comparable & Hashable
 protocol Expression<Element>: CustomDebugStringConvertible {
     associatedtype Element
     func validate(element: Element) -> Bool
